@@ -1,0 +1,46 @@
+# Default pipeline configuration. Override via env vars (PIPELINE__<SECTION>__<KEY>) or --config.
+app_name: pyspark-etl-pipeline
+env: local
+
+paths:
+  raw: data/raw
+  bronze: data/bronze
+  silver: data/silver
+  gold: data/gold
+  dlq: data/dlq
+  checkpoints: data/_checkpoints
+
+generator:
+  num_events: 1_000_000
+  num_users: 50_000
+  num_products: 5_000
+  num_days: 7
+  start_date: "2026-04-01"
+  power_user_ratio: 0.005   # 0.5% of users emit ~30% of events (skew!)
+  malformed_ratio: 0.002    # 0.2% events are malformed (DLQ exercise)
+  duplicate_ratio: 0.01     # 1% duplicated event_ids (dedup exercise)
+  seed: 42
+
+spark:
+  master: "local[*]"
+  shuffle_partitions: 200
+  driver_memory: "4g"
+  executor_memory: "4g"
+  arrow_enabled: true
+  adaptive_enabled: true
+
+quality:
+  silver_max_null_pct:
+    user_id: 0.0
+    product_id: 0.0
+    event_type: 0.0
+    event_ts: 0.0
+  silver_min_distinct_event_types: 4
+  gold_min_sessions: 1
+
+performance:
+  broadcast_threshold_mb: 32
+  salt_buckets: 16             # for skew on power_users
+  zorder_columns: [user_id, product_id]
+  partitions_silver: [event_date]
+  partitions_gold: [event_date]

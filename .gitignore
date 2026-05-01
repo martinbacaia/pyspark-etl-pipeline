@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+
+# Spark
+spark-warehouse/
+metastore_db/
+derby.log
+*.log
+.spark-checkpoint/
+
+# Pipeline data (keep small samples in tests/fixtures)
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+data/dlq/
+data/_checkpoints/
+benchmarks/results/*.json
+!benchmarks/results/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# OS
+Thumbs.db
