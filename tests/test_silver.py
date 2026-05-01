@@ -4,8 +4,6 @@ from __future__ import annotations
 import json
 from datetime import datetime
 
-from chispa.dataframe_comparer import assert_df_equality
-from pyspark.sql import functions as F
 from pyspark.sql.types import StringType, StructField, StructType, TimestampType
 
 from pipeline.silver import deduplicate, enrich_with_catalog, parse_bronze

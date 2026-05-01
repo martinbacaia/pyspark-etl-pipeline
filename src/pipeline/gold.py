@@ -133,7 +133,7 @@ def build_funnel(silver: DataFrame) -> DataFrame:
     for r in rows[1:]:
         union = union.unionByName(r)
 
-    step_idx = F.create_map(*[i for s, idx in zip(FUNNEL_ORDER, range(len(FUNNEL_ORDER))) for i in (F.lit(s), F.lit(idx))])
+    step_idx = F.create_map(*[i for idx, s in enumerate(FUNNEL_ORDER) for i in (F.lit(s), F.lit(idx))])
     w = Window.partitionBy("event_date", "country").orderBy(step_idx[F.col("step")])
     return (
         union.withColumn("next_users", F.lead("users").over(w))

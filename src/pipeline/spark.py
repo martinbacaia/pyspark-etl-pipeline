@@ -1,8 +1,8 @@
 """SparkSession factory with Delta Lake configured."""
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
 
 from pyspark.sql import SparkSession
 

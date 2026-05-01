@@ -1,7 +1,7 @@
 """Generator unit tests (no Spark required for the row-level helper)."""
 from __future__ import annotations
 
-from pipeline.generator import _row_dict, EVENT_WEIGHTS
+from pipeline.generator import EVENT_WEIGHTS, _row_dict
 
 
 def test_row_dict_deterministic_with_same_seed() -> None:

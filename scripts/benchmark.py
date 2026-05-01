@@ -28,7 +28,12 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from pipeline.bronze import run_bronze  # noqa: E402
-from pipeline.generator import build_product_catalog, generate_events, write_products, write_raw  # noqa: E402
+from pipeline.generator import (  # noqa: E402
+    build_product_catalog,
+    generate_events,
+    write_products,
+    write_raw,
+)
 from pipeline.gold import optimize_zorder, run_gold  # noqa: E402
 from pipeline.logging_utils import get_logger, timed  # noqa: E402
 from pipeline.quality import run_gold_checks, run_silver_checks  # noqa: E402

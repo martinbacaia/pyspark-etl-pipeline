@@ -1,7 +1,6 @@
 """Pytest fixtures: a session-scoped local SparkSession with Delta enabled."""
 from __future__ import annotations
 
-import shutil
 import sys
 from pathlib import Path
 

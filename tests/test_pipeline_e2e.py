@@ -13,6 +13,7 @@ import pytest
 from pipeline.bronze import run_bronze
 from pipeline.generator import build_product_catalog, generate_events, write_products, write_raw
 from pipeline.gold import run_gold
+from pipeline.quality import run_silver_checks
 from pipeline.settings import (
     GeneratorCfg,
     Paths,
@@ -22,7 +23,6 @@ from pipeline.settings import (
     SparkCfg,
 )
 from pipeline.silver import run_silver
-from pipeline.quality import run_silver_checks
 
 
 @pytest.fixture

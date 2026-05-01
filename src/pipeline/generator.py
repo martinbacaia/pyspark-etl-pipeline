@@ -17,17 +17,16 @@ import math
 import random
 import uuid
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import click
 from faker import Faker
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql import functions as F
 from pyspark.sql.types import StringType, StructField, StructType
 
 from pipeline.logging_utils import get_logger, timed
-from pipeline.schemas import PRODUCT_SCHEMA, VALID_EVENT_TYPES
+from pipeline.schemas import PRODUCT_SCHEMA
 from pipeline.settings import Settings, load_settings
 from pipeline.spark import spark_session
 
@@ -166,7 +165,7 @@ def _row_dict(seed: int, opts: dict) -> dict:
     return record, event_id, (rng.random() < duplicate_ratio)
 
 
-def _partition_to_jsonl(idx: int, opts: dict, count: int) -> "list[str]":
+def _partition_to_jsonl(idx: int, opts: dict, count: int) -> list[str]:
     out: list[str] = []
     base_seed = opts["seed"] * 1_000_003 + idx
     for i in range(count):
@@ -217,7 +216,7 @@ def generate_events(
     seeds = list(range(n_parts))
 
     rdd = (
-        spark.sparkContext.parallelize(list(zip(seeds, counts)), numSlices=n_parts)
+        spark.sparkContext.parallelize(list(zip(seeds, counts, strict=True)), numSlices=n_parts)
         .flatMap(lambda pair: _partition_to_jsonl(pair[0], opts, pair[1]))
     )
 

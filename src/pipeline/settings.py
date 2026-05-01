@@ -21,7 +21,7 @@ class Paths(BaseModel):
     dlq: str
     checkpoints: str
 
-    def absolute(self, base: Path) -> "Paths":
+    def absolute(self, base: Path) -> Paths:
         def abspath(p: str) -> str:
             pp = Path(p)
             return str(pp if pp.is_absolute() else (base / pp).resolve())

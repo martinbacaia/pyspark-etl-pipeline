@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from pyspark.sql import functions as F
-
 from pipeline.gold import build_funnel, build_sessions, build_top_products
 
 
