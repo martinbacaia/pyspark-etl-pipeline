@@ -86,7 +86,9 @@ def check_event_type_domain(df: DataFrame) -> CheckResult:
 
 
 def check_price_range(df: DataFrame) -> CheckResult:
-    """Price must be non-negative when present."""
+    """Price must be non-negative when present. Skipped if the column is absent."""
+    if "price" not in df.columns:
+        return CheckResult("price_range", True, "skipped (column absent)")
     bad = df.filter((F.col("price").isNotNull()) & (F.col("price") < 0)).limit(1).count()
     return CheckResult("price_range", bad == 0, f"negative_prices={bad}")
 

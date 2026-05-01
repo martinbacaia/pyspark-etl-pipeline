@@ -52,7 +52,9 @@ def parse_bronze(bronze_df: DataFrame) -> tuple[DataFrame, DataFrame]:
         F.col("payload").alias("_payload"),
         F.col("ingest_ts"),
         F.col("raw"),
-    ).withColumn("event_ts", F.to_timestamp("event_ts_str"))
+    # try_to_timestamp returns NULL for unparseable strings instead of raising
+    # under Spark 4 ANSI mode (e.g. injected "NOT-A-DATE" malformed events).
+    ).withColumn("event_ts", F.try_to_timestamp("event_ts_str"))
 
     cant_parse = (
         F.col("_payload").isNull()
