@@ -1,6 +1,6 @@
 # pyspark-etl-pipeline
 
-[![CI](https://github.com/martinleonardomartin/pyspark-etl-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/martinleonardomartin/pyspark-etl-pipeline/actions/workflows/ci.yml)
+[![CI](https://github.com/martinbacaia/pyspark-etl-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/martinbacaia/pyspark-etl-pipeline/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![PySpark](https://img.shields.io/badge/PySpark-3.5%2B-orange)
 ![Delta](https://img.shields.io/badge/Delta%20Lake-3.x%2F4.x-00ADD8)
