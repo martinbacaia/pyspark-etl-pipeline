@@ -51,7 +51,8 @@ def check_null_pct(df: DataFrame, max_null_pct: dict[str, float]) -> list[CheckR
     aggs = []
     for col in max_null_pct:
         aggs.append(F.sum(F.col(col).isNull().cast("long")).alias(col))
-    counts = df.agg(*aggs).first().asDict()
+    row = df.agg(*aggs).first()
+    counts = row.asDict() if row is not None else {}
 
     results = []
     for col, thr in max_null_pct.items():

@@ -89,8 +89,13 @@ def build_product_catalog(spark: SparkSession, settings: Settings) -> DataFrame:
 # Event generator (distributed)
 # ---------------------------------------------------------------------------
 
-def _row_dict(seed: int, opts: dict) -> dict:
-    """Generate one synthetic event as a plain dict (or malformed sentinel).
+def _row_dict(seed: int, opts: dict) -> dict | tuple[dict, str, bool]:
+    """Generate one synthetic event.
+
+    Returns either:
+      * a plain dict with a single ``_raw`` key — sentinel for fully-corrupt
+        JSON garbage that the partition encoder should pass through verbatim, OR
+      * ``(record, event_id, duplicate_flag)`` for the normal path.
 
     Splitting this out of the partition-iterator keeps the hot loop simple
     and makes it cheap to unit-test (no Spark needed).
