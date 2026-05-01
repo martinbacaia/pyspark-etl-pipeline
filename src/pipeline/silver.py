@@ -32,16 +32,12 @@ def parse_bronze(bronze_df: DataFrame) -> tuple[DataFrame, DataFrame]:
     """
     schema = "struct<event_id:string,event_ts:string,event_type:string,user_id:string,session_id:string,product_id:string,quantity:string,price:string,currency:string,country:string,device:string,user_agent:string,referrer:string>"
 
+    # Spark 4's permissive from_json returns a struct of all-null fields for
+    # unparseable input rather than NULL itself, so we detect "couldn't parse
+    # anything" by checking that every required field is null.
     parsed = bronze_df.withColumn("payload", F.from_json("raw", schema))
 
-    # JSON didn't parse at all
-    bad_json = parsed.filter(F.col("payload").isNull()).select(
-        F.col("raw"),
-        F.col("ingest_ts"),
-        F.lit("json_parse_error").alias("dlq_reason"),
-    )
-
-    flat = parsed.filter(F.col("payload").isNotNull()).select(
+    flat = parsed.select(
         F.col("payload.event_id").alias("event_id"),
         F.col("payload.event_ts").alias("event_ts_str"),
         F.col("payload.event_type").alias("event_type"),
@@ -53,13 +49,20 @@ def parse_bronze(bronze_df: DataFrame) -> tuple[DataFrame, DataFrame]:
         F.col("payload.currency").alias("currency"),
         F.col("payload.country").alias("country"),
         F.col("payload.device").alias("device"),
+        F.col("payload").alias("_payload"),
         F.col("ingest_ts"),
         F.col("raw"),
-    ).withColumn(
-        "event_ts", F.to_timestamp("event_ts_str")
-    )
+    ).withColumn("event_ts", F.to_timestamp("event_ts_str"))
 
-    # Required-field validation
+    cant_parse = (
+        F.col("_payload").isNull()
+        | (
+            F.col("event_id").isNull()
+            & F.col("user_id").isNull()
+            & F.col("event_type").isNull()
+            & F.col("event_ts_str").isNull()
+        )
+    )
     required_missing = (
         F.col("event_id").isNull()
         | F.col("user_id").isNull()
@@ -68,10 +71,11 @@ def parse_bronze(bronze_df: DataFrame) -> tuple[DataFrame, DataFrame]:
         | ~F.col("event_type").isin(*VALID_EVENT_TYPES)
     )
 
-    malformed_required = flat.filter(required_missing).select(
+    dlq = flat.filter(required_missing).select(
         F.col("raw"),
         F.col("ingest_ts"),
-        F.when(F.col("event_id").isNull(), F.lit("missing_event_id"))
+        F.when(cant_parse, F.lit("json_parse_error"))
+        .when(F.col("event_id").isNull(), F.lit("missing_event_id"))
         .when(F.col("user_id").isNull(), F.lit("missing_user_id"))
         .when(F.col("event_type").isNull(), F.lit("missing_event_type"))
         .when(F.col("event_ts").isNull(), F.lit("bad_event_ts"))
@@ -79,8 +83,7 @@ def parse_bronze(bronze_df: DataFrame) -> tuple[DataFrame, DataFrame]:
         .alias("dlq_reason"),
     )
 
-    clean = flat.filter(~required_missing).drop("raw", "event_ts_str")
-    dlq = bad_json.unionByName(malformed_required)
+    clean = flat.filter(~required_missing).drop("raw", "event_ts_str", "_payload")
     return clean, dlq
 
 

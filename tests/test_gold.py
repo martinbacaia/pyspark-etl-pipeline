@@ -3,17 +3,43 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
+from pyspark.sql.types import (
+    DateType,
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+    TimestampType,
+)
+
 from pipeline.gold import build_funnel, build_sessions, build_top_products
+
+# Explicit schema: Spark 4 cannot infer types from rows where some columns are
+# all-None (e.g. quantity/price for view events).
+_SILVER_TEST_SCHEMA = StructType([
+    StructField("event_id", StringType(), True),
+    StructField("event_ts", TimestampType(), True),
+    StructField("event_date", DateType(), True),
+    StructField("event_hour", IntegerType(), True),
+    StructField("event_type", StringType(), True),
+    StructField("user_id", StringType(), True),
+    StructField("session_id", StringType(), True),
+    StructField("product_id", StringType(), True),
+    StructField("quantity", IntegerType(), True),
+    StructField("price", DoubleType(), True),
+    StructField("currency", StringType(), True),
+    StructField("country", StringType(), True),
+    StructField("device", StringType(), True),
+    StructField("product_name", StringType(), True),
+    StructField("category", StringType(), True),
+    StructField("brand", StringType(), True),
+    StructField("list_price", DoubleType(), True),
+])
 
 
 def _silver(spark, rows):
-    cols = [
-        "event_id", "event_ts", "event_date", "event_hour", "event_type",
-        "user_id", "session_id", "product_id", "quantity", "price",
-        "currency", "country", "device", "product_name", "category",
-        "brand", "list_price",
-    ]
-    return spark.createDataFrame(rows, cols)
+    return spark.createDataFrame(rows, schema=_SILVER_TEST_SCHEMA)
 
 
 def test_build_sessions_aggregates_one_session(spark):

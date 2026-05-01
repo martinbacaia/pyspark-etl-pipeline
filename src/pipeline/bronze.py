@@ -41,13 +41,17 @@ def add_ingest_metadata(df: DataFrame, source_uri: str) -> DataFrame:
     so we still write them and Silver can route to DLQ.
     """
     ts_regex = r'"event_ts"\s*:\s*"(\d{4}-\d{2}-\d{2})'
+    extracted = F.regexp_extract("raw", ts_regex, 1)
+    # Spark 4 ANSI mode raises on parsing an empty string as a date, so
+    # null-out non-matches before to_date and let coalesce pick the sentinel.
+    safe_date_str = F.when(F.length(extracted) > 0, extracted)
     return (
         df.withColumn("ingest_ts", F.lit(datetime.now(timezone.utc)).cast("timestamp"))
         .withColumn("source", F.lit(source_uri))
         .withColumn(
             "event_date",
             F.coalesce(
-                F.to_date(F.regexp_extract("raw", ts_regex, 1), "yyyy-MM-dd"),
+                F.to_date(safe_date_str, "yyyy-MM-dd"),
                 F.lit("1970-01-01").cast("date"),
             ),
         )

@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 import pytest
+from pyspark.sql.types import StringType, StructField, StructType, TimestampType
 
 from pipeline.quality import (
     DataQualityError,
@@ -39,9 +40,15 @@ def test_event_type_domain_detects_invalid(spark):
 
 
 def test_run_silver_checks_raises_on_failure(spark):
+    schema = StructType([
+        StructField("event_id", StringType(), True),
+        StructField("event_ts", TimestampType(), True),
+        StructField("event_type", StringType(), True),
+        StructField("user_id", StringType(), True),
+    ])
     df = spark.createDataFrame(
         [("e1", datetime(2026, 4, 10, 10, 0, 0), "view", None)],
-        ["event_id", "event_ts", "event_type", "user_id"],
+        schema=schema,
     )
     cfg = QualityCfg(
         silver_max_null_pct={"user_id": 0.0},
